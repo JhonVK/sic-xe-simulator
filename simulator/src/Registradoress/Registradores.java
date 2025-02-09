@@ -1,4 +1,4 @@
-package Registradores;
+package Registradoress;
 public class Registradores {
 
 public Registrador[] registradores;

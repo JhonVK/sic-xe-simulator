@@ -6,8 +6,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import Memória.Memoria;
 import Memória.Palavramem;
-import Registradores.Registradores;
-import Registradores.Registrador;
+import Registradoress.Registrador;
+import Registradoress.Registradores;
 
 public class Controller {
 
