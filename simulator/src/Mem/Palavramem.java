@@ -1,4 +1,4 @@
-package Memória;
+package Mem;
 
 
 public class Palavramem {

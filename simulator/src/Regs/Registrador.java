@@ -1,4 +1,4 @@
-package Registradoress;
+package Regs;
 
 public class Registrador {
     private byte[] reg;

@@ -1,6 +1,6 @@
 
-import Memória.Memoria;
-import Registradoress.Registradores;
+import Mem.Memoria;
+import Regs.Registradores;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

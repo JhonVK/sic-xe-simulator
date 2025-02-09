@@ -1,4 +1,4 @@
-package Memória;
+package Mem;
 
 import java.util.ArrayList;
 

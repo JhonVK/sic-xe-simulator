@@ -4,10 +4,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import Memória.Memoria;
-import Memória.Palavramem;
-import Registradoress.Registrador;
-import Registradoress.Registradores;
+import Mem.Memoria;
+import Mem.Palavramem;
+import Regs.Registrador;
+import Regs.Registradores;
 
 public class Controller {
 
