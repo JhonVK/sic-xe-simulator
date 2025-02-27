@@ -1,5 +1,5 @@
-TEMP       1015
-VAL1       1018
-VAL2       101B
-MAIN       1000
-RESULT     101E
+TEMP       001E
+VAL1       0021
+VAL2       0024
+MAIN       0009
+RESULT     0027
