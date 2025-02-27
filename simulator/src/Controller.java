@@ -145,7 +145,7 @@ public class Controller {
     @FXML
     private void executarMontador() {
         String arquivoEntrada = arquivoInput.getText();
-        String arquivoSaida = "object_code.txt";
+        String arquivoSaida = "simulator\\\\src\\\\utils\\\\object_code.txt";
 
         if (arquivoEntrada.isEmpty()) {
             saidaTextArea.setText("Erro: Nenhum arquivo .asm selecionado!");
