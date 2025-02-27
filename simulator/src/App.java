@@ -32,7 +32,7 @@ public class App extends Application {
             System.err.println("Erro ao processar macros: " + e.getMessage());
             return; // Se houver erro, encerramos a execução
         }
-
+        
         // Inicializa Memória e Registradores
         memoria = new Memoria();
         registradores = new Registradores();
