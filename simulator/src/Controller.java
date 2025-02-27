@@ -15,8 +15,10 @@ import javafx.stage.FileChooser;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import Montador.Assembler;
+import Montador.Macros.MacroProcessor;
 import javafx.stage.Stage;
 
 public class Controller {
@@ -145,23 +147,28 @@ public class Controller {
     @FXML
     private void executarMontador() {
         String arquivoEntrada = arquivoInput.getText();
-        String arquivoSaida = "simulator\\\\src\\\\utils\\\\object_code.txt";
+        String arquivoSaida = "simulator/src/utils/object_code.txt";
 
-        if (arquivoEntrada.isEmpty()) {
+        if(arquivoEntrada.isEmpty()){
             saidaTextArea.setText("Erro: Nenhum arquivo .asm selecionado!");
             return;
         }
 
         try {
-            // Criar uma instância do Assembler e chamar o método de montagem
-    
-            // Criar um arquivo temporário chamado "codigoFonte.asm" para garantir compatibilidade
-            File tempFile = new File("MASMAPRG.asm");
+            File tempFile = new File("simulator/src/utils/MASMAPRG.asm");
             Files.copy(Paths.get(arquivoEntrada), tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     
             // Exibir o conteúdo do arquivo de entrada na fonteTextArea
             lerArquivo(tempFile);
-
+            try{
+                List<String> expandedCode = MacroProcessor.processMacros(tempFile.getAbsolutePath());
+                MacroProcessor.writeToFile(expandedCode, "simulator/src/utils/MASMAPRG.asm");
+                System.out.println("Expansão de macros concluída com sucesso!");
+            }catch (IOException e){
+                System.err.println("Erro ao processar macros: " + e.getMessage());
+                return; // Se houver erro, encerramos a execução
+            }
+            
             // Executar a montagem
             Assembler.main(new String[]{});
 

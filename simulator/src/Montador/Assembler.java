@@ -17,7 +17,7 @@ public class Assembler {
 
             Map<String, Integer> symbolTable = readSymbolTable("simulator/src/utils/pass1_symbol_table.txt");
 
-            File sourceFile = new File("MASMAPRG.asm");
+            File sourceFile = new File("simulator/src/utils/MASMAPRG.asm");
 
             secondPass(sourceFile, instructionSet, symbolTable);
 
@@ -39,7 +39,7 @@ public class Assembler {
     }
 
     private static void makeSymbolTable(ArrayList<Lines> input, Map<String, Instruction> instructionSet) throws FileNotFoundException {
-        File file = new File("MASMAPRG.asm");
+        File file = new File("simulator/src/utils/MASMAPRG.asm");
         ArrayList<Lines> lines = new ArrayList<>();
         int position = 0;
  
@@ -96,7 +96,7 @@ public class Assembler {
     }
 
     private static ArrayList<Lines> readInputFile(Map<String, Instruction> instructionSet) throws FileNotFoundException {
-        File file = new File("MASMAPRG.asm");
+        File file = new File("simulator/src/utils/MASMAPRG.asm");
         ArrayList<Lines> lines = new ArrayList<>();
         Map<String, Integer> symbolTable = new HashMap<>();
 
