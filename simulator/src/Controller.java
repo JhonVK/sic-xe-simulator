@@ -154,7 +154,6 @@ public class Controller {
 
         try {
             // Criar uma instância do Assembler e chamar o método de montagem
-            Assembler montador = new Assembler();
     
             // Criar um arquivo temporário chamado "codigoFonte.asm" para garantir compatibilidade
             File tempFile = new File("MASMAPRG.asm");
@@ -164,7 +163,7 @@ public class Controller {
             lerArquivo(tempFile);
 
             // Executar a montagem
-            montador.main(new String[]{}); 
+            Assembler.main(new String[]{});
 
             // Ler o arquivo gerado pelo montador e exibir na interface
             File arquivoSaidaFile = new File(arquivoSaida);

@@ -8,21 +8,21 @@ public class Assembler {
     public static void main(String[] args) {
         try {
             // Chama a função para carregar as instruções do arquivo
-            Map<String, Instruction> instructionSet = loadInstructionsFromFile("simulator\\src\\utils\\instructions.txt");
+            Map<String, Instruction> instructionSet = loadInstructionsFromFile("simulator/src/utils/instructions.txt");
             ArrayList<Lines> input = readInputFile(instructionSet);
 
             writeIntermediateFile(input);
 
             makeSymbolTable(input, instructionSet);
 
-            Map<String, Integer> symbolTable = readSymbolTable("simulator\\\\src\\\\utils\\\\pass1_symbol_table.txt");
+            Map<String, Integer> symbolTable = readSymbolTable("simulator/src/utils/pass1_symbol_table.txt");
 
             File sourceFile = new File("MASMAPRG.asm");
 
             secondPass(sourceFile, instructionSet, symbolTable);
 
-            String intermediateFile = "simulator\\\\src\\\\utils\\\\pass2_intermediate_file.txt";
-            String outputFile = "simulator\\\\src\\\\utils\\\\object_code.txt";
+            String intermediateFile = "simulator/src/utils/pass2_intermediate_file.txt";
+            String outputFile = "simulator/src/utils/object_code.txt";
             generateObjectCode(intermediateFile, outputFile);
 
             // Exemplo de como acessar uma instrução específica
@@ -276,7 +276,7 @@ public class Assembler {
     }
 
     public static void writeIntermediateFile(ArrayList<Lines> linesList) {
-        try (FileWriter writer = new FileWriter("simulator\\\\src\\\\utils\\\\pass1_intermediate_file.txt")) {
+        try (FileWriter writer = new FileWriter("simulator/src/utils/pass1_intermediate_file.txt")) {
             // Percorre cada linha no ArrayList
             for (Lines line : linesList) {
                 // Escreve cada campo de cada objeto Lines separando com um espaço
@@ -289,7 +289,7 @@ public class Assembler {
     }
 
     private static void writeSymbolTable(Map<String, Integer> symbolTable) {
-        try (FileWriter writer = new FileWriter("simulator\\\\src\\\\utils\\\\pass1_symbol_table.txt")) {
+        try (FileWriter writer = new FileWriter("simulator/src/utils/pass1_symbol_table.txt")) {
             for (Map.Entry<String, Integer> entry : symbolTable.entrySet()) {
                 writer.write(String.format("%-10s %04X\n", entry.getKey(), entry.getValue()));
             }
@@ -359,7 +359,7 @@ public class Assembler {
         List<String> intermediateTable = new ArrayList<>();
 
         try (Scanner scanner = new Scanner(file);
-             BufferedWriter writer = new BufferedWriter(new FileWriter("simulator\\\\src\\\\utils\\\\pass2_intermediate_file.txt"))) {
+             BufferedWriter writer = new BufferedWriter(new FileWriter("simulator/src/utils/pass2_intermediate_file.txt"))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine().trim();
 
