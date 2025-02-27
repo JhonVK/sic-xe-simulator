@@ -17,7 +17,7 @@ public class Assembler {
 
             Map<String, Integer> symbolTable = readSymbolTable("pass1_symbol_table.txt");
 
-            File sourceFile = new File("codigoFonte.asm");
+            File sourceFile = new File("MASMAPRG.asm");
 
             secondPass(sourceFile, instructionSet, symbolTable);
 
@@ -39,7 +39,7 @@ public class Assembler {
     }
 
     private static void makeSymbolTable(ArrayList<Lines> input, Map<String, Instruction> instructionSet) throws FileNotFoundException {
-        File file = new File("codigoFonte.asm");
+        File file = new File("MASMAPRG.asm");
         ArrayList<Lines> lines = new ArrayList<>();
         int position = 0;
 
@@ -96,7 +96,7 @@ public class Assembler {
     }
 
     private static ArrayList<Lines> readInputFile(Map<String, Instruction> instructionSet) throws FileNotFoundException {
-        File file = new File("codigoFonte.asm");
+        File file = new File("MASMAPRG.asm");
         ArrayList<Lines> lines = new ArrayList<>();
         Map<String, Integer> symbolTable = new HashMap<>();
 
@@ -473,7 +473,6 @@ public class Assembler {
 
             String line;
             while ((line = reader.readLine()) != null) {
-                // Divide a linha em partes, considerando espaços e tabulações
                 String[] parts = line.trim().split("\\s+");
                 if (parts.length < 4) continue;
 
@@ -481,12 +480,6 @@ public class Assembler {
                 String label = parts[1];
                 String mnemonic = parts[2];
                 String objectCode = parts[3];
-
-                System.out.println("Linha processada: " + line);
-                System.out.println("Current Record: " + currentRecord.toString());
-                System.out.println("Current Record Start: " + Integer.toHexString(currentRecordStart));
-                System.out.println("Current Record Length: " + currentRecordLength);
-                System.out.println("Text Records: " + textRecords.toString());
 
                 if (mnemonic.equals("START")) {
                     programName = label;
@@ -506,7 +499,7 @@ public class Assembler {
                     int objectCodeLength = objectCode.length() / 2; // Cada par de caracteres hexadecimais representa 1 byte
 
                     // Verifica se adicionar este código objeto excederia 30 bytes
-                    if (currentRecordLength + objectCodeLength >= 30) {
+                    if (currentRecordLength + objectCodeLength > 30) {
                         // Finaliza o registro de texto atual
                         textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord.toString()));
                         // Inicia um novo registro de texto
@@ -515,15 +508,18 @@ public class Assembler {
                         currentRecordLength = 0;
                     }
 
-                    // Adiciona o código objeto ao registro atual, se existir
-                    if (!objectCode.equals("null")) {
-                        currentRecord.append(objectCode).append("^");
-                        currentRecordLength += objectCodeLength;
-                    }
+                    // Adiciona o código objeto ao registro atual
+                    currentRecord.append(objectCode).append("^");
+                    currentRecordLength += objectCodeLength;
 
                     // Atualiza lastAddress considerando o tamanho do código objeto
                     lastAddress = address + objectCodeLength;
                 }
+            }
+
+            // Escreve o último registro de texto, se houver
+            if (currentRecordLength > 0) {
+                textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord.toString()));
             }
 
             // Escreve o registro de cabeçalho
@@ -545,5 +541,7 @@ public class Assembler {
             System.err.println("Erro ao processar o arquivo: " + e.getMessage());
         }
     }
+
+
 
 }

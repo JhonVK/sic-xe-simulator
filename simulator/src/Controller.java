@@ -157,7 +157,7 @@ public class Controller {
             Assembler montador = new Assembler();
     
             // Criar um arquivo temporário chamado "codigoFonte.asm" para garantir compatibilidade
-            File tempFile = new File("codigoFonte.asm");
+            File tempFile = new File("MASMAPRG.asm");
             Files.copy(Paths.get(arquivoEntrada), tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     
             // Exibir o conteúdo do arquivo de entrada na fonteTextArea

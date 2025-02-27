@@ -1,0 +1,32 @@
+MACRO
+ TRIPLEADD &A,&B,&C;macrobegin
+ ADD &A;triplasoma
+MACRO
+ MULSUB &C,&B,&A;secondmacrobegin
+ MULT &C
+ SUB &B
+ SUB &A
+MEND
+ ADD &B
+ ADD &C;lastadd
+MEND
+
+MACRO
+FIRSTTEST MULADD &A,&B,&C
+ COPY &A,&B
+ TRIPLEADD &A,&B,&C
+FIRSTTEST MULT &B
+ ADD &B
+MEND
+
+
+FIRSTLINE LOAD A;firstcommand
+ SUB B
+ MULT C
+ COPY A,B
+INTOMUL MULADD A,B,C
+ TRIPLEADD A,C,D;secondmacro
+GOTOMUL MULADD K,D,J
+ STORE A
+ STORE FIN
+STOP
