@@ -40,7 +40,6 @@ public class Assembler {
 
     private static void makeSymbolTable(ArrayList<Lines> input, Map<String, Instruction> instructionSet) throws FileNotFoundException {
         File file = new File("simulator/src/utils/MASMAPRG.asm");
-        ArrayList<Lines> lines = new ArrayList<>();
         int position = 0;
  
         try (Scanner scanner = new Scanner(file)) {
@@ -68,7 +67,7 @@ public class Assembler {
                 }
 
                 // Identificar partes da linha
-                String label = (parts.length == 3) ? parts[0] : "     ";
+                
                 String mnemonic = (parts.length == 3) ? parts[1] : parts[0];
                 String value = (parts.length == 3) ? parts[2] : (parts.length == 2 ? parts[1] : "");
 
