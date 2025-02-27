@@ -1,0 +1,11 @@
+.button {
+    background-color: #014a73;
+    -fx-background-color: #014a73;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 2, 2);
+    -fx-text-fill: white;
+    font-size: 14px;
+    -fx-font-size: 14px;
+    -fx-background-radius: 5;
+    border-radius: 5px;
+    -fx-border-radius: 5;
+}

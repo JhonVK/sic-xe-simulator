@@ -18,7 +18,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // 🛠 Passo 1: Executar o processador de macros
+
 
         // Inicializa Memória e Registradores
         memoria = new Memoria();
@@ -38,6 +38,7 @@ public class App extends Application {
         controller.updateMemoria(memoria);
 
         Scene scene = new Scene(root);
+        scene.getStylesheets().add(getClass().getResource("styless.css").toExternalForm()); 
         primaryStage.setTitle("Simulador SIC");
         primaryStage.setScene(scene);
         primaryStage.show();
