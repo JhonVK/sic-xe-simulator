@@ -42,7 +42,7 @@ public class Assembler {
         File file = new File("simulator/src/utils/MASMAPRG.asm");
         ArrayList<Lines> lines = new ArrayList<>();
         int position = 0;
- 
+        
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine().trim();
