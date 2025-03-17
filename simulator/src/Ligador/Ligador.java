@@ -12,28 +12,11 @@ import java.util.Map;
 
 public class Ligador {
     
-    private static final String OBJECT_FILE = "teste.txt"; 
+    private static final String OBJECT_FILE = "simulator\\src\\object_code.txt"; 
     private static int EXECADDR;
     private Map<String, Integer> ESTAB = new HashMap<>(); // Tabela de símbolos externos
     private String programName;
 
-    public static void main(String[] args) {
-        Memoria memoria = new Memoria();  
-        Ligador ligador = new Ligador();
-        
-        // Configurações iniciais da memória
-        memoria.memoria.get(0).setValor((byte) 0x01, (byte) 0x02, (byte) 0x03);
-        memoria.memoria.get(1).setValor((byte) 0x0A, (byte) 0x0B, (byte) 0x0C);
-        
-        System.out.println("--- Memória antes da execução ---");
-        ligador.printMemory(memoria, 0, 10);
-        
-        ligador.pass1();
-        ligador.pass2(memoria);
-        
-        System.out.println("--- Memória depois da execução ---");
-        ligador.printMemory(memoria, 0, 200);
-    }
 
     public void pass1() {
         try (BufferedReader file = new BufferedReader(new FileReader(OBJECT_FILE))) {
