@@ -13,6 +13,7 @@ public class App extends Application {
     private static Registradores registradores;
     private static Ligador ligador;
 
+
     public static void main(String[] args) {
         launch(args);
     }
