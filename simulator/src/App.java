@@ -1,5 +1,6 @@
 import Mem.Memoria;
 import Regs.Registradores;
+import Carregador.AbsoluteLoader;
 import Ligador.Ligador;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -8,9 +9,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class App extends Application {
-    private Memoria memoria;
-    private Registradores registradores;
-    private Ligador ligador;
+    private static Memoria memoria;
+    private static Registradores registradores;
+    private static Ligador ligador;
 
     public static void main(String[] args) {
         launch(args);
@@ -22,23 +23,6 @@ public class App extends Application {
         memoria = new Memoria();
         registradores = new Registradores();
         ligador = new Ligador();
-
-        // Inicializa memória com valores específicos
-        memoria.memoria.get(0).setValor((byte) 0x01, (byte) 0x02, (byte) 0x03);
-        memoria.memoria.get(1).setValor((byte) 0x0A, (byte) 0x0B, (byte) 0x0C);
-
-        System.out.println("--- Memória antes da execução ---");
-        ligador.printMemory(memoria, 0, 10);
-        
-        ligador.pass1();
-        ligador.pass2(memoria);
-        
-        System.out.println("--- Memória depois da execução ---");
-        ligador.printMemory(memoria, 0, 200);
-
-        // Cria o AbsoluteLoader e executa a carga do programa
-        //AbsoluteLoader loader = new AbsoluteLoader(memoria, registradores);
-        //loader.execute();
 
         // Carrega a interface gráfica
         FXMLLoader loaderFXML = new FXMLLoader(getClass().getResource("style.fxml"));
@@ -54,5 +38,17 @@ public class App extends Application {
         primaryStage.setTitle("Simulador SIC");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    public static void LII(){
+        System.out.println("--- Memória antes da execução ---");
+        ligador.printMemory(memoria, 0, 10);
+        
+        ligador.pass1();
+        ligador.pass2(memoria);
+        
+        System.out.println("--- Memória depois da execução ---");
+        ligador.printMemory(memoria, 0, 200);
+
     }
 }

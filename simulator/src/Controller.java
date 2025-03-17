@@ -191,5 +191,6 @@ public class Controller {
         } catch (Exception e) {
             saidaTextArea.setText("Erro ao executar o montador: " + e.getMessage());
         }
+        App.LII();
     }   
 }

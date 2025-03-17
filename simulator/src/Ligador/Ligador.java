@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class Ligador {
     
-    private static final String OBJECT_FILE = "simulator\\src\\object_code.txt"; 
+    private static final String OBJECT_FILE = "simulator\\src\\utils\\object_code.txt"; 
     private static int EXECADDR;
     private Map<String, Integer> ESTAB = new HashMap<>(); // Tabela de símbolos externos
     private String programName;
