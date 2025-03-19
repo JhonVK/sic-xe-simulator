@@ -1,13 +1,17 @@
-MAIN START 0
-    LDA VAL1      
-    ADD VAL2      
-    STA RESULT1    
-    STA RESULT2    
-    RSUB          
+MACRO SUM_AND_STORE &VAR1, &VAR2, &RESULT
+    LDA &VAR1
+    ADD &VAR2
+    STA &RESULT
+MEND
 
-VAL1     WORD 5   
-VAL2     WORD 10 
-RESULT1  RESW 1  
-RESULT2  RESW 1 
+MAIN    START   0
+        SUM_AND_STORE VAL1, VAL2, RESULT
+        STA     TEMP
+        RSUB
 
-END MAIN
+TEMP    RESW    1
+VAL1    WORD    5
+VAL2    WORD    10
+RESULT  RESW    1
+
+        END     MAIN
