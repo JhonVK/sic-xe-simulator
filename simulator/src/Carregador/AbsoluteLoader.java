@@ -2,6 +2,7 @@ package Carregador;
 
 import Mem.Memoria;
 import Mem.Palavramem;
+import Regs.Registrador;
 import Regs.Registradores;
 import java.io.*;
 
@@ -24,6 +25,67 @@ public class AbsoluteLoader {
 
     public void executeAtAddress(int address) {
         System.out.println("Executando programa no endereço: " + address);
+        
+        // Set program counter to starting address
+        // Check if we're using a valid register index
+        int pcRegIndex = 7; // Using register 7 (index 7) as PC instead of 8
+        registradores.getRegistradores(pcRegIndex).setReg((byte)0, (byte)0, (byte)address);
+        
+        // Execute instructions until a HALT instruction is encountered
+        boolean running = true;
+        while (running) {
+            // Read instruction from memory at current PC
+            int pc = address; // Or get from registradores if you're updating PC
+            if (pc >= memoria.memoria.size()) {
+                System.err.println("Erro: PC aponta para endereço fora da memória: " + pc);
+                break;
+            }
+            
+            Palavramem instrucao = memoria.memoria.get(pc);
+            
+            // Decode and execute the instruction
+            byte opcode = instrucao.getBytes()[0];
+            System.out.println("Executando instrução: opcode=" + String.format("%02X", opcode) + " no endereço " + pc);
+            
+            // Example: Update registers based on instruction
+            switch (opcode) {
+                case 0x18: // ADD instruction
+                    // Get target register and value
+                    int regIdx = instrucao.getBytes()[1] & 0x0F;
+                    if (regIdx >= 8) {
+                        System.err.println("Erro: Índice de registrador inválido: " + regIdx);
+                        break;
+                    }
+                    
+                    int value = instrucao.getBytes()[2] & 0xFF;
+                    
+                    // Update register
+                    Registrador reg = registradores.getRegistradores(regIdx);
+                    byte[] currentValue = reg.getReg();
+                    int newValue = ((currentValue[1] & 0xFF) << 8 | (currentValue[2] & 0xFF)) + value;
+                    reg.setReg(currentValue[0], (byte)((newValue >> 8) & 0xFF), (byte)(newValue & 0xFF));
+                    System.out.println("Registrador " + regIdx + " atualizado para " + newValue);
+                    break;
+                    
+                case 0x4C: // HALT instruction
+                    running = false;
+                    System.out.println("Instrução HALT encontrada. Terminando execução.");
+                    break;
+                    
+                default:
+                    System.out.println("Opcode não implementado: " + String.format("%02X", opcode));
+                    // Optionally, you might want to break the loop if an unimplemented opcode is encountered
+                    // running = false;
+                    break;
+            }
+            
+            // Update PC
+            address++; // Simplified - actual PC update would depend on instruction
+            if (address >= memoria.memoria.size()) {
+                System.out.println("PC alcançou o final da memória. Terminando execução.");
+                running = false;
+            }
+        }
     }
 
     public void loadModule(String module) {

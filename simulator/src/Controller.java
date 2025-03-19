@@ -39,7 +39,7 @@ public class Controller {
 
     @FXML
     private TableColumn<Palavramem, String> memoryIndexColumn;
-    
+
     @FXML
     private TextField arquivoInput;
 
@@ -57,6 +57,9 @@ public class Controller {
 
     @FXML
     private TableColumn<Palavramem, String> memoryValueColumn;
+
+    @FXML
+    private TextArea masmaprgTextArea; //exibir MASMAPRG.ASM
 
     // Dados das tabelas
     private ObservableList<Registrador> registradores = FXCollections.observableArrayList();
@@ -104,7 +107,7 @@ public class Controller {
         }
         return hexValue.toString().trim();
     }
-    
+
 
     private Stage stage;
 
@@ -142,7 +145,31 @@ public class Controller {
         arquivoInput.clear();
         fonteTextArea.clear();
         saidaTextArea.clear();
+        masmaprgTextArea.clear();
     }
+    ////
+    private void lerArquivoMASMAPRG(File file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            StringBuilder conteudo = new StringBuilder();
+            String linha;
+            while ((linha = br.readLine()) != null) {
+                conteudo.append(linha).append("\n");
+            }
+            masmaprgTextArea.setText(conteudo.toString());  // Atualiza
+        } catch (IOException e) {
+            masmaprgTextArea.setText("Erro ao ler o arquivo!");
+        }
+    }
+    // Método para atualizar a exibição do MASMAPRG.ASM
+    private void atualizarCodigoExpandido() {
+        File arquivoExpandido = new File("simulator/src/utils/MASMAPRG.asm");
+        if (arquivoExpandido.exists()) {
+            lerArquivoMASMAPRG(arquivoExpandido);
+        } else {
+            masmaprgTextArea.setText("Erro: Arquivo MASMAPRG.ASM não encontrado!");
+        }
+    }
+
     /////
     @FXML
     private void executarMontador() {
@@ -157,18 +184,21 @@ public class Controller {
         try {
             File tempFile = new File("simulator/src/utils/MASMAPRG.asm");
             Files.copy(Paths.get(arquivoEntrada), tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-    
+
             // Exibir o conteúdo do arquivo de entrada na fonteTextArea
             lerArquivo(tempFile);
             try{
                 List<String> expandedCode = MacroProcessor.processMacros(tempFile.getAbsolutePath());
                 MacroProcessor.writeToFile(expandedCode, "simulator/src/utils/MASMAPRG.asm");
                 System.out.println("Expansão de macros concluída com sucesso!");
+
+                // atualizar interface com o codigo expandodo
+                atualizarCodigoExpandido();
             }catch (IOException e){
                 System.err.println("Erro ao processar macros: " + e.getMessage());
                 return; // Se houver erro, encerramos a execução
             }
-            
+
             // Executar a montagem
             Assembler.main(new String[]{});
 
@@ -192,5 +222,5 @@ public class Controller {
             saidaTextArea.setText("Erro ao executar o montador: " + e.getMessage());
         }
         App.LII();
-    }   
+    }
 }

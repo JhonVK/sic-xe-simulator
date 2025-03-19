@@ -43,10 +43,11 @@ public class Ligador {
         }
     }
     
-    public void pass2(Memoria memoria) {
+    public void pass2(Memoria memoria, Registradores registradores) {
         try (BufferedReader file = new BufferedReader(new FileReader(OBJECT_FILE))) {
             String register;
-            Registradores registradores = new Registradores();
+            // Remover esta linha: Registradores registradores = new Registradores();
+
             AbsoluteLoader loader = new AbsoluteLoader(memoria, registradores); // Criação do AbsoluteLoader
             
             while ((register = file.readLine()) != null) {
