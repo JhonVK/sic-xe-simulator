@@ -49,7 +49,7 @@ public class App extends Application {
         ligador.pass2(memoria);
         
         System.out.println("--- Memória depois da execução ---");
-        ligador.printMemory(memoria, 0, 200);
+        ligador.printMemory(memoria, 0, 10);
 
     }
 }
