@@ -43,10 +43,10 @@ public class Ligador {
         }
     }
     
-    public void pass2(Memoria memoria, Registradores registradores) {
+    public void pass2(Memoria memoria) {
         try (BufferedReader file = new BufferedReader(new FileReader(OBJECT_FILE))) {
             String register;
-
+            Registradores registradores = new Registradores();
             AbsoluteLoader loader = new AbsoluteLoader(memoria, registradores); // Criação do AbsoluteLoader
             
             while ((register = file.readLine()) != null) {
@@ -66,7 +66,7 @@ public class Ligador {
                     loader.moveToMemory(memoria, address, code.toString());  // Passando a memória para o método
                     System.out.println("Passagem 2 - Trecho de código carregado no endereço " + address + ": " + code);
                 } 
-                else if (type == 'M') {
+                else if (type == 'M') { // Modificação
                     int address = Integer.parseInt(parts[1].trim(), 16) % 1000; // Ajuste no intervalo
                     if (parts.length >= 4) {
                         String symbol = parts[3].trim();

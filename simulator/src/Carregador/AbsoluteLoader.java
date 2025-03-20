@@ -2,7 +2,6 @@ package Carregador;
 
 import Mem.Memoria;
 import Mem.Palavramem;
-import Regs.Registrador;
 import Regs.Registradores;
 import java.io.*;
 
@@ -13,6 +12,14 @@ public class AbsoluteLoader {
     public AbsoluteLoader(Memoria memoria, Registradores registradores) {
         this.memoria = memoria;
         this.registradores = registradores;
+    }
+
+    public void execute() {
+        System.out.println("Memória antes da execução:");
+        memoria.printMemory(10);
+        loadModule("teste.txt");
+        System.out.println("\nMemória após a execução:");
+        memoria.printMemory(200);
     }
 
     public void executeAtAddress(int address) {
