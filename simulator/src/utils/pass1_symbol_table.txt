@@ -1,4 +1,7 @@
-VAL1       000F
-VAL2       0012
 MAIN       0000
-RESULT     0015
+ONE        0033
+FIVE       0036
+TEN        0039
+VAR1       003C
+VAR2       003F
+RESULT     0042
