@@ -82,12 +82,14 @@ public class MacroProcessor {
                 for (Map.Entry<String, String> entry : argMap.entrySet()) {
                     expandedLine = expandedLine.replace(entry.getKey(), entry.getValue());
                 }
-                expanded.append(expandedLine).append("\n");
+                // Verifica se a linha expandida contém chamadas de macro e as expande recursivamente
+                expanded.append(expandLine(expandedLine)).append("\n");
             }
             return expanded.toString().trim();
         }
-        return line;
+        return line; // Retorna a linha original se não for uma chamada de macro
     }
+
 
     public static void writeToFile(List<String> lines, String filename) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename));

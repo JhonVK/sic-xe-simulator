@@ -9,21 +9,21 @@ public class Assembler {
         try {
             // Chama a função para carregar as instruções do arquivo
             Map<String, Instruction> instructionSet = loadInstructionsFromFile("simulator/src/utils/instructions.txt");
+
             ArrayList<Lines> input = readInputFile(instructionSet);
 
             writeIntermediateFile(input);
-
-            makeSymbolTable(input, instructionSet);
 
             Map<String, Integer> symbolTable = readSymbolTable("simulator/src/utils/pass1_symbol_table.txt");
 
             File sourceFile = new File("simulator/src/utils/MASMAPRG.asm");
 
-            secondPass(sourceFile, instructionSet, symbolTable);
+            int finalPosition = secondPass(sourceFile, instructionSet, symbolTable);
 
             String intermediateFile = "simulator/src/utils/pass2_intermediate_file.txt";
             String outputFile = "simulator/src/utils/object_code.txt";
-            generateObjectCode(intermediateFile, outputFile);
+
+            generateObjectCode(intermediateFile, outputFile, finalPosition);
 
             // Exemplo de como acessar uma instrução específica
             Instruction addInstruction = instructionSet.get("ADD");
@@ -38,67 +38,10 @@ public class Assembler {
         }
     }
 
-    private static void makeSymbolTable(ArrayList<Lines> input, Map<String, Instruction> instructionSet) throws FileNotFoundException {
-        File file = new File("simulator/src/utils/MASMAPRG.asm");
-        ArrayList<Lines> lines = new ArrayList<>();
-        int position = 0;
-        
-        try (Scanner scanner = new Scanner(file)) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().trim();
-
-                // Ignorar linhas vazias ou comentários
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-
-                String[] parts = line.split("\\s+");
-
-                // Processar diretiva START
-                if (line.contains("START")) {
-                    String valueStart = parts[parts.length == 3 ? 2 : 1];
-                    position = Integer.parseInt(valueStart, 16); // Define o endereço inicial
-
-                    continue;
-                }
-
-                // Processar diretiva END
-                if (parts[0].equals("END")) {
-                    continue;
-                }
-
-                // Identificar partes da linha
-                String label = (parts.length == 3) ? parts[0] : "     ";
-                String mnemonic = (parts.length == 3) ? parts[1] : parts[0];
-                String value = (parts.length == 3) ? parts[2] : (parts.length == 2 ? parts[1] : "");
-
-                // Processar diretivas específicas
-                if (mnemonic.equalsIgnoreCase("WORD")) {
-                    position += 3;
-                    continue;
-                }
-
-                if (mnemonic.equalsIgnoreCase("RESW")) {
-                    position += 3 * Integer.parseInt(value);
-                    continue;
-                }
-
-                // Processar instruções padrão
-                Instruction instruction = instructionSet.get(mnemonic);
-                if (instruction != null) {
-                    position += instruction.getFormat();
-                } else {
-                    // Registrar erro para mnemônicos desconhecidos
-                    System.out.println("Erro: Instrução desconhecida ou mal formatada - " + mnemonic);
-                }
-            }
-        }
-    }
-
     private static ArrayList<Lines> readInputFile(Map<String, Instruction> instructionSet) throws FileNotFoundException {
         File file = new File("simulator/src/utils/MASMAPRG.asm");
         ArrayList<Lines> lines = new ArrayList<>();
-        Map<String, Integer> symbolTable = new HashMap<>();
+        Map<String, Integer> symbolTable = new LinkedHashMap<>();
 
         int position = 0;
 
@@ -106,140 +49,84 @@ public class Assembler {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine().trim();
 
-                // Ignorar linhas vazias ou comentários
+                // Ignorar comentários e linhas vazias
                 if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
 
                 String[] parts = line.split("\\s+");
-
-                // Processar diretiva START
-                if (line.contains("START")) {
-                    String labelStart = parts.length == 3 ? parts[0] : "     ";
-                    String valueStart = parts[parts.length == 3 ? 2 : 1];
-
-                    System.out.println("Label: " + labelStart + " Value: " + valueStart);
-                    position = Integer.parseInt(valueStart, 16); // Define o endereço inicial
-                    lines.add(new Lines(position, labelStart, "START", valueStart));
-
-                    // Se houver um rótulo, adicioná-lo à tabela de símbolos
-                    if (!labelStart.isEmpty() && !labelStart.equals("     ")) {
-                        if (symbolTable.containsKey(labelStart)) {
-                            System.out.println("Erro: Rótulo duplicado - " + labelStart);
-                        } else {
-                            symbolTable.put(labelStart, position);
-                        }
-                    }
-
-                    continue;
-                }
-
-                // Processar diretiva END
-                if (parts[0].equals("END")) {
-                    lines.add(new Lines(position, "", "END", parts.length > 1 ? parts[1] : ""));
-                    continue;
-                }
-
                 String label = (parts.length == 3) ? parts[0] : "     ";
                 String mnemonic = (parts.length == 3) ? parts[1] : parts[0];
                 String value = (parts.length == 3) ? parts[2] : (parts.length == 2 ? parts[1] : "");
 
-
-                if (line.contains("RSUB")) {
-                    if (parts.length == 2) {
-                        label = parts[0];
-                        mnemonic = parts[1];
-                        value = "     ";
-
-                        if (!label.isEmpty() && !label.equals("     ")) {
-                            if (symbolTable.containsKey(label)) {
-                                System.out.println("Erro: Rótulo duplicado - " + label);
-                            } else {
-                                symbolTable.put(label, position);
-                            }
-                        }
-
-                        lines.add(new Lines(position, label, mnemonic, value));
-
-                        continue;
-
-                    } else {
-                        label = "     ";
-                        mnemonic = parts[0];
-                        value = "     ";
-                    }
-
-                    Instruction instruction = instructionSet.get(mnemonic);
-                    if (instruction != null) {
-                        position += instruction.getFormat();
-                        lines.add(new Lines(position, label, mnemonic, value));
-                    } else {
-                        System.out.println("Erro: Instrução desconhecida ou mal formatada - " + mnemonic);
-                    }
-
+                // Diretiva START
+                if (mnemonic.equalsIgnoreCase("START")) {
+                    position = Integer.parseInt(value, 16);
+                    tryInsertLabel(label, position, symbolTable);
+                    lines.add(new Lines(position, label, "START", value));
                     continue;
-
                 }
 
-                // Processar diretivas específicas
+                // Diretiva END
+                if (mnemonic.equalsIgnoreCase("END")) {
+                    lines.add(new Lines(position, label, "END", value));
+                    continue;
+                }
+
+                // Inserir label antes de atualizar o position
+                tryInsertLabel(label, position, symbolTable);
+
+                // Diretiva WORD
                 if (mnemonic.equalsIgnoreCase("WORD")) {
-                    position += 3;
                     lines.add(new Lines(position, label, "WORD", value));
-
-                    // Se houver um rótulo, adicioná-lo à tabela de símbolos
-                    if (!label.isEmpty() && !label.equals("     ")) {
-                        if (symbolTable.containsKey(label)) {
-                            System.out.println("Erro: Rótulo duplicado - " + label);
-                        } else {
-                            symbolTable.put(label, position);
-                        }
-                    }
+                    position += 3;
                     continue;
                 }
 
+                // Diretiva RESW
                 if (mnemonic.equalsIgnoreCase("RESW")) {
-                    position += 3 * Integer.parseInt(value);
                     lines.add(new Lines(position, label, "RESW", value));
-
-                    // Se houver um rótulo, adicioná-lo à tabela de símbolos
-                    if (!label.isEmpty() && !label.equals("     ")) {
-                        if (symbolTable.containsKey(label)) {
-                            System.out.println("Erro: Rótulo duplicado - " + label);
-                        } else {
-                            symbolTable.put(label, position);
-                        }
-                    }
-
+                    position += 3 * Integer.parseInt(value);
                     continue;
                 }
 
+                // Instrução RSUB (sem operando)
+                if (mnemonic.equalsIgnoreCase("RSUB")) {
+                    lines.add(new Lines(position, label, "RSUB", ""));
+                    position += 3; // formato fixo
+                    continue;
+                }
 
-                // Processar instruções padrão
+                // Instruções padrão
                 Instruction instruction = instructionSet.get(mnemonic);
                 if (instruction != null) {
-                    position += instruction.getFormat();
                     lines.add(new Lines(position, label, mnemonic, value));
+                    position += instruction.getFormat();
                 } else {
                     System.out.println("Erro: Instrução desconhecida ou mal formatada - " + mnemonic);
                 }
-
-                // Se houver um rótulo, adicioná-lo à tabela de símbolos
-                System.out.println("Parte:" + parts[0] + " Label:" + label);
-                if (!label.isEmpty() && !label.equals("     ")) {
-                    if (symbolTable.containsKey(label)) {
-                        System.out.println("Erro: Rótulo duplicado - " + label);
-                    } else {
-                        symbolTable.put(label, position);
-                    }
-                }
-
             }
 
             writeSymbolTable(symbolTable);
+
+        } catch (NumberFormatException e) {
+            System.out.println("Erro ao converter número: " + e.getMessage());
         }
 
         return lines;
     }
+
+    // Função auxiliar para adicionar rótulos
+    private static void tryInsertLabel(String label, int address, Map<String, Integer> symbolTable) {
+        if (!label.isBlank() && !label.equals("     ")) {
+            if (symbolTable.containsKey(label)) {
+                System.out.println("Erro: Rótulo duplicado - " + label);
+            } else {
+                symbolTable.put(label, address);
+            }
+        }
+    }
+
 
 
     // Função para carregar as instruções do arquivo e preencher o HashMap
@@ -354,86 +241,6 @@ public class Assembler {
         }
     }
 
-    public static void secondPass(File file, Map<String, Instruction> instructionSet, Map<String, Integer> symbolTable) throws IOException {
-        int position = 0;
-        List<String> intermediateTable = new ArrayList<>();
-
-        try (Scanner scanner = new Scanner(file);
-             BufferedWriter writer = new BufferedWriter(new FileWriter("simulator/src/utils/pass2_intermediate_file.txt"))) {
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().trim();
-
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-
-                String[] parts = line.split("\\s+");
-
-                String label = "";
-                String mnemonic = "";
-                String value = "";
-
-                if (line.contains("START")) {
-                    value = parts[parts.length == 3 ? 2 : 1];
-                    position = Integer.parseInt(value, 16);
-                    mnemonic = (parts.length == 3) ? parts[1] : parts[0];
-                    label = (parts.length == 3) ? parts[0] : "";
-
-                    String outputLine = String.format("%04X %s %s %s", position, label, mnemonic, value);
-                    intermediateTable.add(outputLine);
-
-                    continue;
-                }
-                if (parts[0].equals("END")) {
-                    continue;
-                }
-
-
-
-                if (line.contains("RSUB")) {
-                    label = (parts.length == 2) ? parts[0] : "";
-                    mnemonic = (parts.length == 2) ? parts[1] : parts[0];
-                    value = "     ";
-                } else {
-                    label = (parts.length == 3) ? parts[0] : "";
-                    mnemonic = (parts.length == 3) ? parts[1] : parts[0];
-                    value = (parts.length == 3) ? parts[2] : (parts.length == 2 ? parts[1] : "");
-                }
-
-                Instruction instruction = instructionSet.get(mnemonic);
-                if (instruction != null) {
-                    int format = instruction.getFormat();
-                    String opcode = instruction.getOpcode();
-                    int operandAddress = 0;
-                    if (!value.isEmpty() && symbolTable.containsKey(value)) {
-                        operandAddress = symbolTable.get(value);
-                    }
-                    String objectCode = opcode + String.format("%04X", operandAddress);
-                    String outputLine = String.format("%04X %s %s %s %s", position, label, mnemonic, value, objectCode);
-                    intermediateTable.add(outputLine);
-                    position += format;
-                } else {
-                    if (mnemonic.equalsIgnoreCase("WORD")) {
-                        int wordValue = Integer.parseInt(value);
-                        String objectCode = String.format("%06X", wordValue);
-                        String outputLine = String.format("%04X %s %s %s %s", position, label, mnemonic, value, objectCode);
-                        intermediateTable.add(outputLine);
-                        position += 3;
-                    } else if (mnemonic.equalsIgnoreCase("RESW")) {
-                        position += 3 * Integer.parseInt(value);
-                    } else {
-                        intermediateTable.add("Erro: Instrução desconhecida - " + mnemonic);
-                    }
-                }
-            }
-
-            for (String line : intermediateTable) {
-                writer.write(line);
-                writer.newLine();
-            }
-        }
-    }
-
     public static Map<String, Integer> readSymbolTable(String fileName) {
         Map<String, Integer> symbolTable = new HashMap<>();
 
@@ -459,13 +266,125 @@ public class Assembler {
         return symbolTable;
     }
 
-    public static void generateObjectCode(String intermediateFile, String outputFile) {
+    public static int secondPass(File file, Map<String, Instruction> instructionSet, Map<String, Integer> symbolTable) throws IOException {
+        int position = 0;
+        List<String> intermediateTable = new ArrayList<>();
+
+        try (Scanner scanner = new Scanner(file);
+             BufferedWriter writer = new BufferedWriter(new FileWriter("simulator/src/utils/pass2_intermediate_file.txt"))) {
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+
+                String[] parts = line.split("\\s+");
+                String label = "", mnemonic = "", operand = "", objectCode = "";
+
+                // START
+                if (line.contains("START")) {
+                    operand = parts[parts.length == 3 ? 2 : 1];
+                    position = Integer.parseInt(operand, 16);
+                    mnemonic = (parts.length == 3) ? parts[1] : parts[0];
+                    label = (parts.length == 3) ? parts[0] : "NOLABEL";
+
+                    intermediateTable.add(String.format("%04X %-8s %-8s %-8s", position, label, mnemonic, operand));
+                    continue;
+                }
+
+                // END
+                if (parts[0].equalsIgnoreCase("END")) {
+                    operand = (parts.length > 1) ? parts[1] : "";
+                    intermediateTable.add(String.format("%04X %-8s %-8s %-8s", position, "NOLABEL", "END", operand));
+                    break;
+                }
+
+                // Parsing geral
+                if (parts.length == 3) {
+                    label = parts[0];
+                    mnemonic = parts[1];
+                    operand = parts[2];
+                } else if (parts.length == 2) {
+                    label = "NOLABEL";
+                    mnemonic = parts[0];
+                    operand = parts[1];
+                } else {
+                    label = "NOLABEL";
+                    mnemonic = parts[0];
+                    operand = "";
+                }
+
+                // RSUB (sem operando, mas precisa alinhar!)
+                if (mnemonic.equalsIgnoreCase("RSUB")) {
+                    objectCode = "4F0000";
+                    operand = "0000"; // Garante que o campo 4 exista
+                    intermediateTable.add(String.format("%04X %-8s %-8s %-8s %s", position, label, mnemonic, operand, objectCode));
+                    position += 3;
+                    continue;
+                }
+
+                // Instruções normais
+                Instruction instruction = instructionSet.get(mnemonic);
+                if (instruction != null) {
+                    int format = instruction.getFormat();
+                    String opcode = instruction.getOpcode();
+                    int operandAddress = 0;
+
+                    if (!operand.isBlank() && symbolTable.containsKey(operand)) {
+                        operandAddress = symbolTable.get(operand);
+                    }
+
+                    if (format == 3) {
+                        objectCode = String.format("%02X%04X", Integer.parseInt(opcode, 16), operandAddress);
+                    } else if (format == 2) {
+                        objectCode = opcode + "00";
+                    } else if (format == 1) {
+                        objectCode = opcode;
+                    }
+
+                    intermediateTable.add(String.format("%04X %-8s %-8s %-8s %s", position, label, mnemonic, operand, objectCode));
+                    position += format;
+                    continue;
+                }
+
+                // WORD
+                if (mnemonic.equalsIgnoreCase("WORD")) {
+                    int wordValue = Integer.parseInt(operand);
+                    objectCode = String.format("%06X", wordValue).toUpperCase();
+                    intermediateTable.add(String.format("%04X %-8s %-8s %-8s %s", position, label, mnemonic, operand, objectCode));
+                    position += 3;
+                    continue;
+                }
+
+                // RESW
+                if (mnemonic.equalsIgnoreCase("RESW")) {
+                    int n = Integer.parseInt(operand);
+                    position += 3 * n;
+                    continue;
+                }
+
+                // Instrução desconhecida
+                intermediateTable.add(String.format("%04X %-8s %-8s %-8s ??", position, label, mnemonic, operand));
+            }
+
+            for (String l : intermediateTable) {
+                writer.write(l);
+                writer.newLine();
+            }
+
+            System.out.println("📍 Segunda passagem finalizada. Último endereço usado: " + String.format("%04X", position));
+        }
+
+        return position;
+    }
+
+    public static void generateObjectCode(String intermediateFile, String outputFile, int finalPosition) {
         try (BufferedReader reader = new BufferedReader(new FileReader(intermediateFile));
              BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
 
             String programName = "";
             int startAddress = 0;
             int lastAddress = 0;
+
             List<String> textRecords = new ArrayList<>();
             StringBuilder currentRecord = new StringBuilder();
             int currentRecordStart = -1;
@@ -473,75 +392,100 @@ public class Assembler {
 
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.trim().split("\\s+");
-                if (parts.length < 4) continue;
+                System.out.println("🔎 Lendo linha: " + line);
+
+                String[] parts = line.trim().split("\\s+", 5);
+                if (parts.length < 4) {
+                    System.out.println("⚠️ Linha ignorada (menos de 4 partes)");
+                    continue;
+                }
 
                 int address = Integer.parseInt(parts[0], 16);
                 String label = parts[1];
                 String mnemonic = parts[2];
-                String objectCode = parts[3];
+                String operand = parts[3];
+                String objectCode = (parts.length == 5) ? parts[4] : "";
 
-                if (mnemonic.equals("START")) {
-                    programName = label;
+                System.out.printf("🧩 Parsed: Addr=%04X Label='%s' Mnemonic='%s' Operand='%s' ObjCode='%s'\n",
+                        address, label, mnemonic, operand, objectCode);
+
+                // START
+                if (mnemonic.equalsIgnoreCase("START")) {
+                    programName = label.equals("NOLABEL") ? "" : label;
                     startAddress = address;
                     lastAddress = startAddress;
-                } else if (mnemonic.equals("END")) {
-                    // Finaliza o último registro de texto, se houver
-                    if (currentRecordLength > 0) {
-                        textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord.toString()));
-                    }
-                    break;
-                } else {
-                    if (currentRecordStart == -1) {
-                        currentRecordStart = address;
-                    }
-
-                    int objectCodeLength = objectCode.length() / 2; // Cada par de caracteres hexadecimais representa 1 byte
-
-                    // Verifica se adicionar este código objeto excederia 30 bytes
-                    if (currentRecordLength + objectCodeLength > 30) {
-                        // Finaliza o registro de texto atual
-                        textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord.toString()));
-                        // Inicia um novo registro de texto
-                        currentRecord = new StringBuilder();
-                        currentRecordStart = address;
-                        currentRecordLength = 0;
-                    }
-
-                    // Adiciona o código objeto ao registro atual
-                    currentRecord.append(objectCode).append("^");
-                    currentRecordLength += objectCodeLength;
-
-                    // Atualiza lastAddress considerando o tamanho do código objeto
-                    lastAddress = address + objectCodeLength;
+                    System.out.printf("📦 START detectado. Programa: %s | Início: %04X\n", programName, startAddress);
+                    continue;
                 }
+
+                // END
+                if (mnemonic.equalsIgnoreCase("END")) {
+                    if (currentRecordLength > 0) {
+                        textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord));
+                        System.out.printf("🧱 Text record: T^%06X^%02X^%s\n", currentRecordStart, currentRecordLength, currentRecord);
+                    }
+                    System.out.printf("✅ Finalizando com End Record: E^%06X\n", startAddress);
+                    break;
+                }
+
+                if (objectCode.isBlank() || objectCode.equals("??")) {
+                    System.out.println("⚠️ Object code ausente ou inválido, pulando.");
+                    continue;
+                }
+
+                // 🧩 Quebra de text record se endereço não for contínuo
+                if (address != lastAddress && currentRecordLength > 0) {
+                    textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord));
+                    System.out.printf("🧱 Text record: T^%06X^%02X^%s\n", currentRecordStart, currentRecordLength, currentRecord);
+
+                    currentRecord = new StringBuilder();
+                    currentRecordStart = address;
+                    currentRecordLength = 0;
+                    System.out.printf("📌 Novo Text Record iniciado em: %04X\n", address);
+                }
+
+                // Início do primeiro Text Record
+                if (currentRecordStart == -1) {
+                    currentRecordStart = address;
+                    System.out.printf("📌 Iniciando novo Text Record em: %04X\n", address);
+                }
+
+                int objCodeLength = objectCode.length() / 2;
+
+                // Se passar de 30 bytes, quebra
+                if (currentRecordLength + objCodeLength > 30) {
+                    textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord));
+                    System.out.printf("🧱 Text record: T^%06X^%02X^%s\n", currentRecordStart, currentRecordLength, currentRecord);
+
+                    currentRecord = new StringBuilder();
+                    currentRecordStart = address;
+                    currentRecordLength = 0;
+                    System.out.printf("📌 Novo Text Record iniciado em: %04X\n", address);
+                }
+
+                currentRecord.append(objectCode);
+                currentRecordLength += objCodeLength;
+                lastAddress = address + objCodeLength;
             }
 
-            // Escreve o último registro de texto, se houver
-            if (currentRecordLength > 0) {
-                textRecords.add(String.format("T^%06X^%02X^%s", currentRecordStart, currentRecordLength, currentRecord.toString()));
-            }
+            // Cálculo do tamanho do programa
+            int programLength = finalPosition - startAddress;
+            System.out.printf("📐 Calculado programLength: %04X (dec %d)\n", programLength, programLength);
 
-            // Escreve o registro de cabeçalho
-            int programLength = lastAddress - startAddress;
+            // Header
             writer.write(String.format("H^%-6s^%06X^%06X\n", programName, startAddress, programLength));
+            System.out.printf("📤 Gerando Header: H^%-6s^%06X^%06X\n", programName, startAddress, programLength);
 
-            // Escreve os registros de texto
+            // Text records
             for (String record : textRecords) {
-                // Remove o '^' final antes de escrever o registro
-                writer.write(record.substring(0, record.length() - 1) + "\n");
+                writer.write(record + "\n");
             }
 
-            // Escreve o registro de fim
+            // End record
             writer.write(String.format("E^%06X\n", startAddress));
-
-            System.out.println("Código objeto gerado com sucesso no arquivo: " + outputFile);
-
         } catch (IOException e) {
-            System.err.println("Erro ao processar o arquivo: " + e.getMessage());
+            System.err.println("❌ Erro ao gerar o object code: " + e.getMessage());
         }
     }
-
-
 
 }
