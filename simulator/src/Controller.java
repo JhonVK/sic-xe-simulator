@@ -27,12 +27,6 @@ public class Controller {
     @FXML
     private TableView<Registrador> TabelaReg;
 
-    @FXML
-    private TableColumn<Registrador, String> registerColumn;
-
-    @FXML
-    private TableColumn<Registrador, String> valueColumn;
-
     // Elementos da tabela de memória
     @FXML
     private TableView<Palavramem> TabelaMem;
@@ -67,15 +61,7 @@ public class Controller {
 
     @FXML
     public void initialize() {
-        // Configurar tabela de registradores
-        registerColumn.setCellValueFactory(data ->
-                new SimpleStringProperty(String.valueOf(registradores.indexOf(data.getValue()) + 1))
-        );
-        valueColumn.setCellValueFactory(data ->
-                new SimpleStringProperty(data.getValue().getValueAsString())
-        );
-        TabelaReg.setItems(registradores);
-
+    
         // Configurar tabela de memória
         memoryIndexColumn.setCellValueFactory(data ->
                 new SimpleStringProperty(String.valueOf(memoria.indexOf(data.getValue())))

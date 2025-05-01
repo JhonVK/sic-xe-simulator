@@ -52,7 +52,7 @@ public class Ligador {
             while ((register = file.readLine()) != null) {
                 String[] parts = register.split("\\^");
                 char type = parts[0].charAt(0);
-    
+                
                 if (type == 'H') {  // Cabeçalho
                     int firstFreeAddress = loader.findNextFreeMemoryIndex(); // findNextFreeMemoryIndex do AbsoluteLoader 
                     System.out.println("Passagem 2 - Carregando segmento " + programName + " no primeiro espaço livre: " + firstFreeAddress);
